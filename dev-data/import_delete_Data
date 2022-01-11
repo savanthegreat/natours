@@ -1,0 +1,49 @@
+/* eslint-disable prettier/prettier */
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const fs = require('fs');
+const Tour = require('../models/tourModel');
+
+dotenv.config({ path: './config.env' });
+const DB = process.env.DATABASE.replace(
+  '<PASSWORD>',
+  process.env.DATABASE_PASSWORD
+);
+
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('WE ARE CONNECTED!'));
+
+const importData = async () => {
+  try {
+    const tourData = JSON.parse(
+      fs.readFileSync(`${__dirname}/data/tours-simple.json`, 'utf-8')
+    );
+    await Tour.create(tourData);
+    console.log('Data Added Sucessfully');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
+};
+
+const deleteData = async () => {
+  try {
+    await Tour.deleteMany();
+    console.log('Data Deleted Sucessfully');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
+};
+
+if (process.argv[2] === '--import') {
+  importData();
+} else if (process.argv[2] === '--delete') {
+  deleteData();
+}
